@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Productivity Tracker</title>
+    <style>
+        /* Apple-style design with black theme */
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;600&display=swap');
+        body {
+            font-family: 'SF Pro Display', sans-serif;
+            background-color: #000000;
+            color: #FFFFFF;
+            margin: 0;
+            padding: 0;
+        }
+        /* Container */
+        .tracker {
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: #1C1C1E;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+            text-align: center;
+        }
+        /* Header */
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            font-weight: 600;
+        }
+        /* Tabs */
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 12px 25px;
+            background-color: #2C2C2E;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .tab.active {
+            background-color: #0A84FF;
+        }
+        .tab:not(.active):hover {
+            background-color: #3A3A3C;
+        }
+        /* Content Sections */
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        /* Displays */
+        .display-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .time-display {
+            font-size: 48px;
+            color: #0A84FF;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .controls button {
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            border: none;
+            border-radius: 10px;
+            background-color: #0A84FF;
+            color: #FFFFFF;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .controls button:hover {
+            background-color: #0066CC;
+        }
+        /* Quick Labels Window */
+        .quick-labels-window {
+            background-color: #1C1C1E;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #2C2C2E;
+            margin-top: 10px;
+        }
+        .quick-labels-window h3 {
+            margin-top: 0;
+            color: #FFFFFF;
+            font-weight: 600;
+        }
+        .quick-labels-window input {
+            width: calc(100% - 24px);
+            background-color: #2C2C2E;
+            color: #FFFFFF;
+            border: 1px solid #3A3A3C;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .quick-labels-window button {
+            background-color: #0A84FF;
+            color: #FFFFFF;
+            padding: 10px;
+            font-size: 14px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .quick-labels-window button:hover {
+            background-color: #0066CC;
+        }
+        .quick-labels-window .labels-container {
+            display: grid;
+            grid-template-columns: repeat(4, auto);
+            gap: 8px;
+        }
+        .label-button-container {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid #4D4D4D;
+            background-color: transparent;
+            font-size: 12px;
+            justify-content: center;
+            height: auto;
+            min-width: 100px;
+        }
+        .label-button {
+            background-color: transparent;
+            border: none;
+            color: #000000;
+            font-size: 12px;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            text-align: center;
+            width: 100%;
+        }
+        .delete-label-button {
+            margin-top: 5px;
+            background-color: #FF3B30;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            cursor: pointer;
+            width: 80%;
+        }
+        /* Log */
+        #log {
+            width: 100%;
+            max-height: 250px;
+            overflow-y: auto;
+            background-color: #1C1C1E;
+            padding: 10px;
+            border: 1px solid #2C2C2E;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .log-group {
+            border: 1px solid #4D4D4D;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .log-entry {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .log-entry .action-type {
+            width: 15%;
+            color: #8E8E93;
+            text-align: left;
+            font-size: 14px;
+        }
+        .log-entry input[type="text"] {
+            width: 40%;
+            background-color: #2C2C2E;
+            color: #FFFFFF;
+            border: none;
+            padding: 8px;
+            border-radius: 10px;
+            outline: none;
+            font-size: 14px;
+        }
+        .log-entry .timestamp {
+            color: #8E8E93;
+            width: 25%;
+            text-align: right;
+            font-size: 14px;
+        }
+        .log-entry button.edit-button,
+        .log-entry button.delete-button {
+            background-color: #0A84FF;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 10px;
+            padding: 8px 10px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 14px;
+        }
+        .log-entry button.delete-button {
+            background-color: #FF3B30;
+        }
+        .log-entry button.edit-button:hover {
+            background-color: #0066CC;
+        }
+        .log-entry button.delete-button:hover {
+            background-color: #CC2E25;
+        }
+        /* Summary */
+        .summary-section h2 {
+            color: #FFFFFF;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .summary-table th, .summary-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #2C2C2E;
+        }
+        .summary-table th {
+            background-color: #2C2C2E;
+        }
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1C1C1E;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3A3A3C;
+            border-radius: 4px;
+        }
+    </style>
+    <!-- Tesseract.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+</head>
+<body>
+
+<div class="tracker">
+    <h1>Productivity Tracker</h1>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <div class="tab active" onclick="openTab(event, 'stopwatch')">Stopwatch</div>
+        <div class="tab" onclick="openTab(event, 'timer')">Timer</div>
+        <div class="tab" onclick="openTab(event, 'summary')">Summary</div>
+    </div>
+
+    <!-- Stopwatch Section -->
+    <div id="stopwatch" class="content-section active">
+        <div class="display-container">
+            <div class="time-display" id="stopwatch-display">00:00:00</div>
+            <div class="controls">
+                <button onclick="startStopwatch()" title="Start">▶</button>
+                <button onclick="pauseStopwatch()" title="Pause">⏸</button>
+                <button onclick="timestampStopwatch()" title="Timestamp">⏱</button>
+                <button onclick="resetStopwatch()" title="Reset">⟳</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timer Section -->
+    <div id="timer" class="content-section">
+        <div class="display-container">
+            <div class="time-display" id="timer-display">00:00:00</div>
+            <div class="controls">
+                <input type="number" id="timerInput" placeholder="Set Timer (min)" class="timer-input">
+                <button onclick="startTimer()" title="Start Timer">▶</button>
+                <button onclick="pauseTimer()" title="Pause Timer">⏸</button>
+                <button onclick="timestampTimer()" title="Timestamp">⏱</button>
+                <button onclick="resetTimer()" title="Reset Timer">⟳</button>
+            </div>
+        </div>
+        <div class="timer-buttons">
+            <button onclick="setTimer(1)">1 min</button>
+            <button onclick="setTimer(5)">5 min</button>
+            <button onclick="setTimer(15)">15 min</button>
+            <button onclick="setTimer(30)">30 min</button>
+            <button onclick="setTimer(60)">1 h</button>
+            <button onclick="setTimer(120)">2 h</button>
+        </div>
+    </div>
+
+    <!-- Summary Section -->
+    <div id="summary" class="content-section summary-section">
+        <h2>Summary</h2>
+        <div id="summaryContent">
+            <!-- Summary content will be generated here -->
+        </div>
+    </div>
+
+    <!-- Log -->
+    <div>
+        <h2>Log</h2>
+        <div id="log"></div>
+        <button onclick="exportCSV()">Export CSV</button>
+    </div>
+
+    <!-- Quick Labels Window -->
+    <div class="quick-labels-window">
+        <h3>Quick Labels</h3>
+        <input type="text" id="newLabelInput" placeholder="Enter new label">
+        <button onclick="addQuickLabel()">Add Quick Label</button>
+        <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
+        <canvas id="imageCanvas" style="display:none;"></canvas>
+        <div class="labels-container" id="labelsContainer">
+            <!-- Quick label buttons will appear here in 4 columns -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // Global Variables
+    let stopwatchInterval;
+    let timerInterval;
+    let stopwatchStartTime = null;
+    let timerStartTime = null;
+    let stopwatchElapsedTime = 0;
+    let timerElapsedTime = 0;
+    let stopwatchTimestamps = [];
+    let timerTimestamps = [];
+    let logEntries = [];
+    let quickLabels = [];
+    let timerDuration = 0;
+    let timerRemainingTime = 0;
+    let timerPaused = false;
+    let editableLogEntry = null;
+    let stopwatchRunning = false;
+    let timerRunning = false;
+    let lastStopwatchLabel = '';
+    let lastTimerLabel = '';
+    let currentStopwatchGroup = null;
+    let currentTimerGroup = null;
+    let stopwatchPaused = false;
+    let timerPausedState = false;
+
+    // Tab Functionality
+    function openTab(event, tabName) {
+        let i;
+        let contentSections = document.getElementsByClassName("content-section");
+        let tabs = document.getElementsByClassName("tab");
+
+        // Hide all content sections
+        for (i = 0; i < contentSections.length; i++) {
+            contentSections[i].classList.remove('active');
+        }
+        // Remove active class from all tabs
+        for (i = 0; i < tabs.length; i++) {
+            tabs[i].classList.remove('active');
+        }
+        // Show the selected content section
+        document.getElementById(tabName).classList.add('active');
+        // Add active class to the selected tab
+        event.currentTarget.classList.add('active');
+
+        // If the summary tab is opened, generate the summary
+        if (tabName === 'summary') {
+            generateSummary();
+        }
+    }
+
+    // Image Upload and Tesseract.js OCR Functionality
+    function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.getElementById('imageCanvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                // Use Tesseract.js to extract text from the image
+                Tesseract.recognize(
+                    canvas, 'eng',
+                    {
+                        logger: info => console.log(info), // Log progress
+                    }
+                ).then(({ data: { text } }) => {
+                    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+                    
+                    // Clear previous quick labels
+                    quickLabels = [];
+
+                    // Add quick label buttons for each line of text found
+                    lines.forEach(task => {
+                        addQuickLabel(task);
+                    });
+                });
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Format Time
+    function formatTime(seconds) {
+        let hrs = Math.floor(seconds / 3600).toString().padStart(2, '0');
+        let mins = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        let secs = (seconds % 60).toFixed(0).toString().padStart(2, '0');
+        return `${hrs}:${mins}:${secs}`;
+    }
+
+    // Stopwatch Functions
+    function startStopwatch() {
+        if (stopwatchRunning) {
+            pauseStopwatch();
+        }
+        stopwatchStartTime = Date.now() - stopwatchElapsedTime;
+        clearInterval(stopwatchInterval);
+        stopwatchInterval = setInterval(updateStopwatchDisplay, 100);
+        stopwatchRunning = true;
+
+        let actionType = stopwatchPaused ? 'Continue' : 'Start';
+        stopwatchPaused = false;
+        addLogEntry(lastStopwatchLabel, actionType, 'Stopwatch');
+    }
+
+    function updateStopwatchDisplay() {
+        stopwatchElapsedTime = Date.now() - stopwatchStartTime;
+        let totalSeconds = Math.floor(stopwatchElapsedTime / 1000);
+        document.getElementById('stopwatch-display').innerText = formatTime(totalSeconds);
+    }
+
+    function pauseStopwatch() {
+        if (stopwatchRunning) {
+            if (editableLogEntry && editableLogEntry.type === 'Stopwatch' && (editableLogEntry.actionType === 'Start' || editableLogEntry.actionType === 'Continue')) {
+                disableEditMode(editableLogEntry);
+            }
+            clearInterval(stopwatchInterval);
+            stopwatchRunning = false;
+            stopwatchElapsedTime = Date.now() - stopwatchStartTime;
+            stopwatchPaused = true;
+            addLogEntry(lastStopwatchLabel, 'Pause', 'Stopwatch');
+        }
+    }
+
+    function resetStopwatch() {
+        let totalDuration = Math.floor(stopwatchElapsedTime / 1000);
+        clearInterval(stopwatchInterval);
+        stopwatchStartTime = null;
+        stopwatchElapsedTime = 0;
+        stopwatchTimestamps = [];
+        stopwatchRunning = false;
+        stopwatchPaused = false;
+        document.getElementById('stopwatch-display').innerText = '00:00:00';
+        addLogEntry(lastStopwatchLabel, `Reset (${formatTime(totalDuration)})`, 'Stopwatch');
+        currentStopwatchGroup = null;
+        lastStopwatchLabel = '';
+    }
+
+    function timestampStopwatch() {
+        let currentTime = stopwatchElapsedTime;
+        let lastTimestamp = stopwatchTimestamps.slice(-1)[0] || 0;
+        let duration = Math.floor((currentTime - lastTimestamp) / 1000);
+        stopwatchTimestamps.push(currentTime);
+        addLogEntry(lastStopwatchLabel, `Timestamp (${formatTime(duration)} since last)`, 'Stopwatch');
+    }
+
+    // Timer Functions
+    function startTimer() {
+        if (timerRunning) {
+            pauseTimer();
+        }
+        if (!timerPaused) {
+            timerDuration = parseInt(document.getElementById('timerInput').value);
+            if (isNaN(timerDuration) || timerDuration <= 0) {
+                alert('Please enter a valid number of minutes.');
+                return;
+            }
+            timerRemainingTime = timerDuration * 60 * 1000;
+        }
+        timerStartTime = Date.now();
+        clearInterval(timerInterval);
+        timerInterval = setInterval(updateTimerDisplay, 100);
+        timerPaused = false;
+        timerRunning = true;
+
+        let actionType = timerPausedState ? 'Continue' : 'Start';
+        timerPausedState = false;
+        addLogEntry(lastTimerLabel, actionType, 'Timer');
+    }
+
+    function updateTimerDisplay() {
+        let elapsedTime = Date.now() - timerStartTime;
+        timerRemainingTime -= elapsedTime;
+        timerStartTime = Date.now();
+
+        if (timerRemainingTime <= 0) {
+            clearInterval(timerInterval);
+            document.getElementById('timer-display').innerText = '00:00:00';
+            alert('Timer finished!');
+            addLogEntry(lastTimerLabel, 'Finished', 'Timer');
+            timerPaused = false;
+            timerRunning = false;
+            timerRemainingTime = 0;
+            lastTimerLabel = '';
+            currentTimerGroup = null;
+        } else {
+            let totalSeconds = Math.ceil(timerRemainingTime / 1000);
+            document.getElementById('timer-display').innerText = formatTime(totalSeconds);
+        }
+    }
+
+    function pauseTimer() {
+        if (timerRunning) {
+            if (editableLogEntry && editableLogEntry.type === 'Timer' && (editableLogEntry.actionType === 'Start' || editableLogEntry.actionType === 'Continue')) {
+                disableEditMode(editableLogEntry);
+            }
+            clearInterval(timerInterval);
+            timerPaused = true;
+            timerRunning = false;
+            timerPausedState = true;
+            addLogEntry(lastTimerLabel, 'Pause', 'Timer');
+        }
+    }
+
+    function resetTimer() {
+        let totalDuration = (timerDuration * 60 * 1000 - timerRemainingTime) / 1000;
+        clearInterval(timerInterval);
+        timerStartTime = null;
+        timerRemainingTime = 0;
+        timerDuration = 0;
+        timerPaused = false;
+        timerPausedState = false;
+        timerRunning = false;
+        timerTimestamps = [];
+        document.getElementById('timer-display').innerText = '00:00:00';
+        addLogEntry(lastTimerLabel, `Reset (${formatTime(totalDuration)})`, 'Timer');
+        currentTimerGroup = null;
+        lastTimerLabel = '';
+    }
+
+    function timestampTimer() {
+        let currentTime = timerDuration * 60 * 1000 - timerRemainingTime;
+        let lastTimestamp = timerTimestamps.slice(-1)[0] || 0;
+        let duration = Math.floor((currentTime - lastTimestamp) / 1000);
+        timerTimestamps.push(currentTime);
+        addLogEntry(lastTimerLabel, `Timestamp (${formatTime(duration)} since last)`, 'Timer');
+    }
+
+    // Set Timer Duration using Default Buttons
+    function setTimer(minutes) {
+        document.getElementById('timerInput').value = minutes;
+    }
+
+    // Log Entry Function
+    function addLogEntry(label, actionType, type) {
+        let log = document.getElementById('log');
+        let entry = document.createElement('div');
+        entry.className = 'log-entry';
+
+        let timestamp = new Date();
+        let timeString = timestamp.toLocaleTimeString();
+        let dateString = timestamp.toLocaleDateString();
+
+        let actionTypeDiv = document.createElement('div');
+        actionTypeDiv.className = 'action-type';
+        actionTypeDiv.textContent = actionType;
+
+        let actionInput = document.createElement('input');
+        actionInput.type = 'text';
+        actionInput.value = label;
+        actionInput.readOnly = true;
+
+        let timestampSpan = document.createElement('div');
+        timestampSpan.className = 'timestamp';
+        timestampSpan.textContent = `${dateString} ${timeString}`;
+
+        let editButton = document.createElement('button');
+        editButton.className = 'edit-button';
+        editButton.textContent = 'Edit';
+        editButton.onclick = function() {
+            toggleEditMode(entry, actionInput, editButton);
+        };
+
+        let deleteButton = document.createElement('button');
+        deleteButton.className = 'delete-button';
+        deleteButton.textContent = 'Delete';
+        deleteButton.onclick = function() {
+            deleteLogEntry(entry);
+        };
+
+        entry.appendChild(actionTypeDiv);
+        entry.appendChild(actionInput);
+        entry.appendChild(timestampSpan);
+        entry.appendChild(editButton);
+        entry.appendChild(deleteButton);
+
+        // Assign properties to the entry for easy access
+        entry.type = type;
+        entry.actionType = actionType;
+
+        // Handle grouping
+        let groupContainer = null;
+        if (actionType === 'Start' || actionType === 'Continue') {
+            if (!currentStopwatchGroup && type === 'Stopwatch') {
+                currentStopwatchGroup = document.createElement('div');
+                currentStopwatchGroup.className = 'log-group';
+                log.append(currentStopwatchGroup);
+            }
+            if (!currentTimerGroup && type === 'Timer') {
+                currentTimerGroup = document.createElement('div');
+                currentTimerGroup.className = 'log-group';
+                log.append(currentTimerGroup);
+            }
+        }
+
+        if (type === 'Stopwatch' && currentStopwatchGroup) {
+            currentStopwatchGroup.appendChild(entry);
+        } else if (type === 'Timer' && currentTimerGroup) {
+            currentTimerGroup.appendChild(entry);
+        } else {
+            log.append(entry);
+        }
+
+        // Scroll to the newest log entry
+        log.scrollTop = log.scrollHeight;
+
+        // Store log entries for summary and reference
+        logEntries.push({
+            actionInput: actionInput,
+            timestamp: timestamp,
+            type: type,
+            entryElement: entry,
+            editButton: editButton,
+            deleteButton: deleteButton,
+            actionType: actionType
+        });
+
+        // Automatically set the new entry to edit mode
+        toggleEditMode(entry, actionInput, editButton);
+    }
+
+    // Toggle Edit Mode for Log Entry
+    function toggleEditMode(entry, actionInput, editButton) {
+        // Disable previous editable entry
+        if (editableLogEntry && editableLogEntry !== entry) {
+            disableEditMode(editableLogEntry);
+        }
+
+        if (entry.classList.contains('editable')) {
+            // Disable edit mode and change button text back to 'Edit'
+            disableEditMode(entry);
+            editButton.textContent = 'Edit';
+        } else {
+            // Enable edit mode and change button text to 'Save'
+            entry.classList.add('editable');
+            actionInput.readOnly = false;
+            actionInput.classList.add('editable');
+            editableLogEntry = entry;
+            editButton.textContent = 'Save';
+        }
+    }
+
+    function disableEditMode(entry) {
+        let actionInput = entry.querySelector('input[type="text"]');
+        let editButton = entry.querySelector('.edit-button');
+        entry.classList.remove('editable');
+        actionInput.readOnly = true;
+        actionInput.classList.remove('editable');
+        editButton.textContent = 'Edit';
+        editableLogEntry = null;
+
+        // Update the last label if necessary
+        let actionType = entry.actionType;
+        if (actionType === 'Start' || actionType === 'Continue' || actionType.includes('Timestamp') || actionType.includes('Reset')) {
+            let label = actionInput.value;
+            if (entry.type === 'Stopwatch') {
+                lastStopwatchLabel = label;
+            } else if (entry.type === 'Timer') {
+                lastTimerLabel = label;
+            }
+        }
+    }
+
+    // Delete Log Entry
+    function deleteLogEntry(entry) {
+        entry.remove();
+        logEntries = logEntries.filter(logEntry => logEntry.entryElement !== entry);
+    }
+
+    // Quick Label Functions
+    function addQuickLabel(labelText = null) {
+        let label = labelText || document.getElementById('newLabelInput').value.trim();
+        if (label === '') {
+            alert('Please enter a label.');
+            return;
+        }
+        quickLabels.push(label);
+        updateQuickLabels();
+        document.getElementById('newLabelInput').value = '';
+    }
+
+    function updateQuickLabels() {
+        let labelsContainer = document.getElementById('labelsContainer');
+        labelsContainer.innerHTML = '';
+        quickLabels.forEach(function(label, index) {
+            let labelButtonContainer = document.createElement('div');
+            labelButtonContainer.className = 'label-button-container';
+
+            let labelButton = document.createElement('button');
+            labelButton.className = 'label-button';
+            labelButton.textContent = label;
+            labelButton.onclick = function() {
+                labelEditableLogEntry(label);
+            };
+
+            let deleteLabelButton = document.createElement('button');
+            deleteLabelButton.className = 'delete-label-button';
+            deleteLabelButton.textContent = 'Delete';
+            deleteLabelButton.onclick = function() {
+                deleteQuickLabel(index);
+            };
+
+            labelButtonContainer.appendChild(labelButton);
+            labelButtonContainer.appendChild(deleteLabelButton);
+            labelsContainer.appendChild(labelButtonContainer);
+        });
+    }
+
+    function deleteQuickLabel(index) {
+        quickLabels.splice(index, 1);
+        updateQuickLabels();
+    }
+
+    // Label the Editable Log Entry
+    function labelEditableLogEntry(label) {
+        if (editableLogEntry) {
+            let actionInput = editableLogEntry.querySelector('input[type="text"]');
+            actionInput.value = label;
+
+            // Store the label if it's a relevant action
+            let actionType = editableLogEntry.actionType;
+            if (actionType === 'Start' || actionType === 'Continue' || actionType.includes('Timestamp') || actionType.includes('Reset')) {
+                if (editableLogEntry.type === 'Stopwatch') {
+                    lastStopwatchLabel = label;
+                } else if (editableLogEntry.type === 'Timer') {
+                    lastTimerLabel = label;
+                }
+            }
+        } else {
+            alert('Please select a log entry to edit by clicking its Edit button.');
+        }
+    }
+
+    // Export CSV Function
+    function exportCSV() {
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Label,Action Type,Timestamp,Type\n";
+        logEntries.forEach(entry => {
+            let label = entry.actionInput.value.replace(/"/g, '""');
+            let actionType = entry.actionType;
+            let timestamp = entry.timestamp.toLocaleString();
+            let type = entry.type;
+            csvContent += `"${label}","${actionType}","${timestamp}","${type}"\n`;
+        });
+        var encodedUri = encodeURI(csvContent);
+        var link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "log.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // Summary Generation
+    function generateSummary() {
+        let summaryContent = document.getElementById('summaryContent');
+        summaryContent.innerHTML = '';
+
+        if (logEntries.length === 0) {
+            summaryContent.innerHTML = '<p>No log entries to summarize.</p>';
+            return;
+        }
+
+        // Categorize and accumulate durations
+        let summaryData = {};
+        for (let i = 0; i < logEntries.length; i++) {
+            let entry = logEntries[i];
+            let label = entry.actionInput.value || 'Unlabeled';
+            let actionType = entry.actionType;
+            let duration = 0;
+
+            if (actionType === 'Start' || actionType === 'Continue') {
+                // Find corresponding Pause or Finished action
+                let startTime = entry.timestamp;
+                let endTime = null;
+
+                for (let j = i + 1; j < logEntries.length; j++) {
+                    let nextEntry = logEntries[j];
+                    if ((nextEntry.actionType === 'Pause' || nextEntry.actionType === 'Finished' || nextEntry.actionType.includes('Reset')) && nextEntry.type === entry.type) {
+                        endTime = nextEntry.timestamp;
+                        break;
+                    }
+                }
+
+                if (endTime) {
+                    duration = Math.floor((endTime - startTime) / 1000);
+                } else {
+                    duration = Math.floor((new Date() - startTime) / 1000);
+                }
+
+                if (duration > 0) {
+                    if (!summaryData[label]) {
+                        summaryData[label] = {
+                            count: 0,
+                            totalDuration: 0
+                        };
+                    }
+                    summaryData[label].count += 1;
+                    summaryData[label].totalDuration += duration;
+                }
+            } else if (actionType.includes('Timestamp')) {
+                let durationMatch = actionType.match(/\((.*?)\)/);
+                if (durationMatch && durationMatch[1]) {
+                    let timeParts = durationMatch[1].split('since last')[0].trim().split(':');
+                    duration = parseInt(timeParts[0]) * 3600 + parseInt(timeParts[1]) * 60 + parseInt(timeParts[2]);
+                }
+                if (duration > 0) {
+                    if (!summaryData[label]) {
+                        summaryData[label] = {
+                            count: 0,
+                            totalDuration: 0
+                        };
+                    }
+                    summaryData[label].count += 1;
+                    summaryData[label].totalDuration += duration;
+                }
+            } else if (actionType.includes('Reset')) {
+                let durationMatch = actionType.match(/\((.*?)\)/);
+                if (durationMatch && durationMatch[1]) {
+                    let timeParts = durationMatch[1].split(':');
+                    duration = parseInt(timeParts[0]) * 3600 + parseInt(timeParts[1]) * 60 + parseInt(timeParts[2]);
+                }
+                if (duration > 0) {
+                    if (!summaryData[label]) {
+                        summaryData[label] = {
+                            count: 0,
+                            totalDuration: 0
+                        };
+                    }
+                    summaryData[label].count += 1;
+                    summaryData[label].totalDuration += duration;
+                }
+            }
+        }
+
+        // Create summary table
+        let table = document.createElement('table');
+        table.className = 'summary-table';
+        let thead = document.createElement('thead');
+        let headerRow = document.createElement('tr');
+        let headers = ['Label', 'Occurrences', 'Total Duration'];
+        headers.forEach(text => {
+            let th = document.createElement('th');
+            th.textContent = text;
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        let tbody = document.createElement('tbody');
+        for (let label in summaryData) {
+            let row = document.createElement('tr');
+
+            let labelCell = document.createElement('td');
+            labelCell.textContent = label;
+            row.appendChild(labelCell);
+
+            let countCell = document.createElement('td');
+            countCell.textContent = summaryData[label].count;
+            row.appendChild(countCell);
+
+            let durationCell = document.createElement('td');
+            durationCell.textContent = formatTime(summaryData[label].totalDuration);
+            row.appendChild(durationCell);
+
+            tbody.appendChild(row);
+        }
+        table.appendChild(tbody);
+
+        summaryContent.appendChild(table);
+    }
+</script>
+
+</body>
+</html>
